@@ -51,9 +51,9 @@ namespace Transportlaget
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Transport"/> class.
 		/// </summary>
-		public Transport (int BUFSIZE, string APP)
+		public Transport (int BUFSIZE)
 		{
-			link = new Link(BUFSIZE+(int)TransSize.ACKSIZE, APP);
+			link = new Link(BUFSIZE+(int)TransSize.ACKSIZE);
 			checksum = new Checksum();
 			buffer = new byte[BUFSIZE+(int)TransSize.ACKSIZE];
 			seqNo = 0;
@@ -118,6 +118,7 @@ namespace Transportlaget
 		public void send(byte[] buf, int size)
 		{
 			// TO DO Your own code
+			link.send(buf,size);
 		}
 
 		/// <summary>
@@ -129,6 +130,7 @@ namespace Transportlaget
 		public int receive (ref byte[] buf)
 		{
 			// TO DO Your own code
+			return 0;
 		}
 	}
 }

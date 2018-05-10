@@ -47,7 +47,9 @@ namespace Application
 		/// </param>
 		public static void Main (string[] args)
 		{
-			new file_server();
+			var trans = new Transport (1000);
+			var hej = "Hej";
+			trans.send (Encoding.ASCII.GetBytes(hej), 3);
 		}
 	}
 }

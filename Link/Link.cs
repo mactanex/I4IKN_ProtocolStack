@@ -27,21 +27,12 @@ namespace Linklaget
 		/// <summary>
 		/// Initializes a new instance of the <see cref="link"/> class.
 		/// </summary>
-		public Link (int BUFSIZE, string APP)
+		public Link (int BUFSIZE)
 		{
 			// Create a new SerialPort object with default settings.
-			#if DEBUG
-				if(APP.Equals("FILE_SERVER"))
-				{
-					serialPort = new SerialPort("/dev/ttySn0",115200,Parity.None,8,StopBits.One);
-				}
-				else
-				{
-					serialPort = new SerialPort("/dev/ttySn1",115200,Parity.None,8,StopBits.One);
-				}
-			#else
-				serialPort = new SerialPort("/dev/ttyS1",115200,Parity.None,8,StopBits.One);
-			#endif
+
+			serialPort = new SerialPort("/dev/ttyS1",115200,Parity.None,8,StopBits.One);
+
 			if(!serialPort.IsOpen)
 				serialPort.Open();
 
@@ -65,6 +56,7 @@ namespace Linklaget
 		/// </param>
 		public void send (byte[] buf, int size)
 		{
+			serialPort.Write(buf, 0, size);
 	    	// TO DO Your own code
 		}
 
