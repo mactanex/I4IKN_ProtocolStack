@@ -53,7 +53,10 @@ namespace Application
 		/// </param>
 		public static void Main (string[] args)
 		{
-			new file_client(args);
+			byte[] buffer = new byte[50];
+			var trans = new Transport (1000);
+			trans.receive (ref buffer);
+			Console.WriteLine (Encoding.ASCII.GetString (buffer));
 		}
 	}
 }
