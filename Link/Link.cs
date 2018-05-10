@@ -72,9 +72,10 @@ namespace Linklaget
 		/// </param>
 		public int receive (ref byte[] buf)
 		{			
+			while(!BeginReceive()){}
 			var counter = Receive ();
 			int inserted = 0;
-			for (int i = 1; i < counter-1; i++) {
+			for (int i = 0; i < counter-1; i++) {
 				if (buffer [i] == (byte)'B') {
 					if (buffer [i + 1] == (byte)'C') {
 						buf [inserted++] = (byte)'A';
@@ -92,16 +93,24 @@ namespace Linklaget
 			return inserted;
 		}
 
+		private bool BeginReceive()
+		{
+			byte received = (byte)serialPort.ReadByte ();
+			if(received == (byte)'A')
+				return true;
+
+			return false;
+		}
+			
 		private int Receive()
 		{
-			byte received;
-			int delimiterCount = 0;
 			int counter = 0;
-			while(delimiterCount < 2)
+			while(counter < buffer.Length)
 			{
-				if ((received = (byte)serialPort.ReadByte()) == (byte)'A')
-					delimiterCount++;
+				var received = (byte)serialPort.ReadByte ();
 				buffer [counter++] = received;
+				if (received == (byte)'A')
+					break;
 			}
 			return counter;
 		}
