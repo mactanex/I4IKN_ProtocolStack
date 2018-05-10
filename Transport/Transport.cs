@@ -130,7 +130,7 @@ namespace Transportlaget
 		public int receive (ref byte[] buf)
 		{
 			// TO DO Your own code
-			return 0;
+			return link.receive(ref buf);
 		}
 	}
 }

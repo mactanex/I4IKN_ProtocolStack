@@ -78,7 +78,7 @@ namespace Linklaget
 			int counter = 0;
 			while(delimiterCount < 2)
 			{
-				if (received = serialPort.ReadByte == (byte)'A')
+				if ((received = (byte)serialPort.ReadByte()) == (byte)'A')
 					delimiterCount++;
 				buffer [counter++] = received;
 			}
@@ -125,10 +125,6 @@ namespace Linklaget
 			buffer [inserted++] = DELIMITER;
 			return inserted;
 		}
-
-		private int Deframe(byte[] buf, int size)
-		{
 			
-		}
 	}
 }
