@@ -71,18 +71,8 @@ namespace Linklaget
 		/// Size.
 		/// </param>
 		public int receive (ref byte[] buf)
-		{
-			
-			byte received;
-			int delimiterCount = 0;
-			int counter = 0;
-			while(delimiterCount < 2)
-			{
-				if ((received = (byte)serialPort.ReadByte()) == (byte)'A')
-					delimiterCount++;
-				buffer [counter++] = received;
-			}
-
+		{			
+			var counter = Receive ();
 			int inserted = 0;
 			for (int i = 1; i < counter-1; i++) {
 				if (buffer [i] == (byte)'B') {
@@ -100,6 +90,20 @@ namespace Linklaget
 
 			// TO DO Your own code
 			return inserted;
+		}
+
+		private int Receive()
+		{
+			byte received;
+			int delimiterCount = 0;
+			int counter = 0;
+			while(delimiterCount < 2)
+			{
+				if ((received = (byte)serialPort.ReadByte()) == (byte)'A')
+					delimiterCount++;
+				buffer [counter++] = received;
+			}
+			return counter;
 		}
 
 		private int Frame(byte[] buf, int size)
