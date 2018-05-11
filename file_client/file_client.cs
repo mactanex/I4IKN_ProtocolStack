@@ -55,7 +55,7 @@ namespace Application
 		{
 			byte[] buffer = new byte[50];
 			var trans = new Transport (1000);
-			int size;
+			int size = 0;
 
 			for (int i = 0; i < 10; i++) {
 				size = trans.receive (ref buffer);
@@ -63,7 +63,7 @@ namespace Application
 			}
 
 			for (int i = 0; i < 10; i++) {
-				trans.send (ref buffer, size);
+				trans.send (buffer, size);
 			}
 
 		}
