@@ -135,7 +135,15 @@ namespace Transportlaget
 		public int receive (ref byte[] buf)
 		{
 			// TO DO Your own code
-			return link.receive(ref buf);
+			int size = link.receive(ref buffer);
+
+
+			while (!checksum.checkChecksum (buffer, size) || buffer[(int)TransCHKSUM.SEQNO] != seqNo) {
+				sendAck (old_seqNo);
+				size = link.receive (ref buffer);
+			}
+
+			return 0;
 		}
 
 		private void nextSeqNo()
