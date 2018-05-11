@@ -28,8 +28,23 @@ namespace Application
 		/// </param>
 	    private file_client(String[] args)
 	    {
-	    	// TO DO Your own code
-	    }
+            string file = args[1];
+
+
+            System.Net.Sockets.TcpClient ClientSocket = new System.Net.Sockets.TcpClient();
+            ClientSocket.Connect(args[0], PORT);
+            ClientSocket.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            NetworkStream ServerStream = ClientSocket.GetStream();
+            LIB.writeTextTCP(ServerStream, file);
+            ServerStream.Flush();
+            string fileName = LIB.extractFileName(file);
+
+            receiveFile(fileName, ServerStream);
+
+            ServerStream.Close();
+            ClientSocket.Dispose();
+            ClientSocket.Close();
+        }
 
 		/// <summary>
 		/// Receives the file.
@@ -42,16 +57,36 @@ namespace Application
 		/// </param>
 		private void receiveFile (String fileName, Transport transport)
 		{
-			// TO DO Your own code
-		}
+            Byte[] instream = new byte[BUFSIZE];
+            int receivedBytes;
+            int totalRecBytes = 0;
+            //int NoOfPackets = Convert.ToInt32 (Math.Ceiling (Convert.ToDouble (fileSize) / Convert.ToDouble (BUFSIZE)));
+            //for(){};
 
-		/// <summary>
-		/// The entry point of the program, where the program control starts and ends.
-		/// </summary>
-		/// <param name='args'>
-		/// First argument: Filname
-		/// </param>
-		public static void Main (string[] args)
+            //io.Read (instream, 0, BUFSIZE);
+            //string file = System.Text.Encoding.ASCII.GetString (instream);
+
+            FileStream newFile = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write);
+            while ((receivedBytes = io.Read(instream, 0, instream.Length)) > 0)
+            {
+                newFile.Write(instream, 0, receivedBytes);
+                totalRecBytes += receivedBytes;
+            }
+            newFile.Close();
+
+            Console.WriteLine(fileName);
+
+            io.Close();
+
+        }
+
+        /// <summary>
+        /// The entry point of the program, where the program control starts and ends.
+        /// </summary>
+        /// <param name='args'>
+        /// First argument: Filname
+        /// </param>
+        public static void Main (string[] args)
 		{
 			byte[] buffer = new byte[50];
 			var trans = new Transport (1000);
