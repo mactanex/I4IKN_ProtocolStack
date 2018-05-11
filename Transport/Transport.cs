@@ -137,13 +137,17 @@ namespace Transportlaget
 			// TO DO Your own code
 			int size = link.receive(ref buffer);
 
-
 			while (!checksum.checkChecksum (buffer, size) || buffer[(int)TransCHKSUM.SEQNO] != seqNo) {
-				sendAck (old_seqNo);
+				sendAck (false);
 				size = link.receive (ref buffer);
 			}
+			sendAck (true);
+			nextSeqNo ();
+			size -= (int)TransSize.ACKSIZE;
 
-			return 0;
+			Array.Copy (buffer,(int)TransSize.ACKSIZE,buf,0,size);
+
+			return size;
 		}
 
 		private void nextSeqNo()
