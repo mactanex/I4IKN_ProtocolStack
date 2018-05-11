@@ -47,10 +47,18 @@ namespace Application
 		/// </param>
 		public static void Main (string[] args)
 		{
+			var buffer = new byte[50];
 			var trans = new Transport (1000);
 			for (int i = 0; i < 10; i++) {
 				var hej = "Bent vil gerne hAve kAge";
 				trans.send (Encoding.ASCII.GetBytes(hej), hej.Length);
+			}
+
+			int size;
+
+			for (int i = 0; i < 10; i++) {
+				size = trans.receive (ref buffer);
+				Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
 			}
 		}
 	}

@@ -55,10 +55,15 @@ namespace Application
 		{
 			byte[] buffer = new byte[50];
 			var trans = new Transport (1000);
+			int size;
 
 			for (int i = 0; i < 10; i++) {
-				int size = trans.receive (ref buffer);
+				size = trans.receive (ref buffer);
 				Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
+			}
+
+			for (int i = 0; i < 10; i++) {
+				trans.send (ref buffer, size);
 			}
 
 		}
