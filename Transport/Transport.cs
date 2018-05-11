@@ -108,24 +108,22 @@ namespace Transportlaget
 		/// </param>
 		public void send(byte[] buf, int size)
 		{
-            // TO DO Your own code
-
+            // Construct the package
+			buffer[(int)TransCHKSUM.SEQNO] = seqNo;
+			buffer[(int)TransCHKSUM.TYPE] = (byte)(int)TransType.DATA;
+			for (int i = 0; i < size; i++)
+			{
+				buffer[i + (int)TransSize.ACKSIZE] = buf[i];
+			}
+			checksum.calcChecksum(ref buffer, size);
+			// Send it
             do
-            {
-                buffer[2] = seqNo;
-                buffer[3] = 0;
-                for (int i = 0; i < size; i++)
-                {
-                    buffer[i + 4] = buf[i];
-
-                }
-                checksum.calcChecksum(ref buf, size);
-                link.send(buf, size);
+            {              
+                link.send(buffer, size);
             } while (receiveAck() != seqNo);
-            {
-                nextSeqNo();
-                old_seqNo = DEFAULT_SEQNO;
-            }
+			// Package received - update seq number
+            nextSeqNo();
+            old_seqNo = DEFAULT_SEQNO;
 		}
 
 		/// <summary>
@@ -136,12 +134,11 @@ namespace Transportlaget
 		/// </param>
 		public int receive (ref byte[] buf)
 		{
-			// TO DO Your own code
+			
 			return link.receive(ref buf);
 		}
 
-
-        private void nextSeqNo()
+		private void nextSeqNo()
         {
             seqNo = (byte)((seqNo + 1) % 2);
         }
