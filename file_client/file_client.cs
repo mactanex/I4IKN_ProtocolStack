@@ -58,7 +58,7 @@ namespace Application
 
 			for (int i = 0; i < 10; i++) {
 				int size = trans.receive (ref buffer);
-				Console.WriteLine (Encoding.ASCII.GetString (buffer, size));
+				Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
 			}
 
 		}
