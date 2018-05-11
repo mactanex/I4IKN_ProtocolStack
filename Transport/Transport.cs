@@ -72,13 +72,14 @@ namespace Transportlaget
 		{
             byte[] buf = new byte[(int)TransSize.ACKSIZE];
             int size = link.receive(ref buf);
+
             if (size != (int)TransSize.ACKSIZE) return DEFAULT_SEQNO;
+
             if(!checksum.checkChecksum(buf, (int)TransSize.ACKSIZE) || 
-                buf[(int)TransCHKSUM.SEQNO] != seqNo || buf[(int)TransCHKSUM.SEQNO] != (int)TransType.ACK)
+				buf[(int)TransCHKSUM.SEQNO] != seqNo || buf[(int)TransCHKSUM.TYPE] != (int)TransType.ACK)
             return DEFAULT_SEQNO;
 
             return seqNo;
-
 		}
 
 		/// <summary>
@@ -115,11 +116,11 @@ namespace Transportlaget
 			{
 				buffer[i + (int)TransSize.ACKSIZE] = buf[i];
 			}
-			checksum.calcChecksum(ref buffer, size);
+			checksum.calcChecksum(ref buffer, size + (int)TransSize.ACKSIZE);
 			// Send it
             do
             {              
-                link.send(buffer, size);
+				link.send(buffer, size + (int)TransSize.ACKSIZE);
             } while (receiveAck() != seqNo);
 			// Package received - update seq number
             nextSeqNo();
@@ -141,6 +142,7 @@ namespace Transportlaget
 				sendAck (false);
 				size = link.receive (ref buffer);
 			}
+
 			sendAck (true);
 			nextSeqNo ();
 			size -= (int)TransSize.ACKSIZE;
