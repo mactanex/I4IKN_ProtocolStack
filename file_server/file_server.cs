@@ -48,8 +48,10 @@ namespace Application
 		public static void Main (string[] args)
 		{
 			var trans = new Transport (1000);
-			var hej = "Bent vil gerne hAve kAge";
-			trans.send (Encoding.ASCII.GetBytes(hej), hej.Length);
+			for (int i = 0; i < 10; i++) {
+				var hej = "Bent vil gerne hAve kAge";
+				trans.send (Encoding.ASCII.GetBytes(hej), hej.Length);
+			}
 		}
 	}
 }
