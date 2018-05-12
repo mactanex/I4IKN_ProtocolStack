@@ -73,30 +73,15 @@ namespace Linklaget
 		public int receive (ref byte[] buf)
 		{			
 			while(!BeginReceive()){}
-			var counter = Receive ();
-			int inserted = 0;
-			for (int i = 0; i < counter-1; i++) {
-				if (buffer [i] == (byte)'B') {
-					if (buffer [i + 1] == (byte)'C') {
-						buf [inserted++] = (byte)'A';
-						i++;
-					} else if (buffer [i + 1] == (byte)'D') {
-						buf [inserted++] = (byte)'B';
-						i++;
-					}
-				} else {
-					buf [inserted++] = buffer [i];				
-				}
-			}
-
-			// TO DO Your own code
+			var sizeWithDelimiter = Receive ();
+			var inserted = Deframe (ref buf, sizeWithDelimiter);
 			return inserted;
 		}
 
 		private bool BeginReceive()
 		{
-			byte received = (byte)serialPort.ReadByte ();
-			if(received == (byte)'A')
+			var received = (byte)serialPort.ReadByte ();
+			if(received == DELIMITER)
 				return true;
 
 			return false;
@@ -109,11 +94,35 @@ namespace Linklaget
 			{
 				var received = (byte)serialPort.ReadByte ();
 				buffer [counter++] = received;
-				if (received == (byte)'A')
+				if (received == DELIMITER)
 					break;
 			}
 			return counter;
 		}
+
+		/// <summary>
+		/// Deframes what is currently stored in buffer and returns this to target
+		/// Size is the size of what is currently stored in buffer including the final delimiter
+		/// </summary>
+		/// <param name="">.</param>
+		private int Deframe(ref byte[] target, int size)
+		{
+			var inserted = 0;
+			for (var i = 0; i < size-1; i++) {
+				if (buffer [i] == (byte)'B')
+				{
+					if (buffer [++i] == (byte)'C') 
+						target [inserted++] = (byte)'A';
+					else 
+						target [inserted++] = (byte)'B';
+
+					continue;
+				} 
+				target [inserted++] = buffer [i];				
+			}
+			return inserted;
+		}
+
 
 		private int Frame(byte[] buf, int size)
 		{
@@ -123,7 +132,7 @@ namespace Linklaget
 			buffer [inserted++] = DELIMITER;
 		
 			while (counter < size) {
-				if (buf [counter] == (byte)'A') {
+				if (buf [counter] == DELIMITER) {
 					buffer [inserted++] = (byte)'B';
 					buffer [inserted++] = (byte)'C';				
 				} else if (buf [counter] == (byte)'B') {
