@@ -20,7 +20,19 @@ namespace Application
 		/// </summary>
 		private file_server ()
 		{
-			// TO DO Your own code
+			Transport transport = new Transport (BUFSIZE);
+			byte[] buffer = new byte[BUFSIZE];
+
+			while (true) {
+				int size = transport.receive (ref buffer);
+
+				if (size != 0) {
+					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
+
+
+					sendFile (fileName,size,transport);
+				}
+			}
 		}
 
 		/// <summary>
@@ -35,14 +47,14 @@ namespace Application
 		/// <param name='tl'>
 		/// Tl.
 		/// </param>
-		private void sendFile(String fileName, Transport transport)
+		private void sendFile(String fileName, long fileSize, Transport transport)
 		{
 			// TO DO Your own code
 			byte[] fileBuffer = new byte[BUFSIZE];
 			int len = ReadFile (ref fileBuffer, fileName);
 			if (len != 0) {
 				transport.send (Encoding.ASCII.GetBytes(len.ToString()),len.ToString().Length);
-				transport.send (fileBuffer, len);
+				transport.send (fileBuffer, (int)fileSize);
 			}
 		}
 
@@ -91,36 +103,6 @@ namespace Application
 		public static void Main (string[] args)
 		{
 			file_server server = new file_server ();
-			Transport transport = new Transport (BUFSIZE);
-			byte[] buffer = new byte[BUFSIZE];
-
-			while (true) {
-				int size = transport.receive (ref buffer);
-
-				if (size != 0) {
-					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
-
-
-					server.sendFile (fileName,transport);
-				}
-			}
-
-			
-
-
-			//var buffer = new byte[50];
-			//var trans = new Transport (BUFSIZE);
-			//for (int i = 0; i < 10; i++) {
-			//	var hej = "Bent vil gerne hAve kAge";
-			//	trans.send (c, hej.Length);
-			//}
-
-			//int size;
-
-			//for (int i = 0; i < 10; i++) {
-			//	size = trans.receive (ref buffer);
-			//	Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
-			//}
 		}
 	}
 }
