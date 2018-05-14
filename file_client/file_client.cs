@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Text;
 using Transportlaget;
@@ -26,7 +27,7 @@ namespace Application
 		/// <param name='args'>
 		/// Filnavn med evtuelle sti.
 		/// </param>
-	    private file_client(String[] args)
+	    private file_client()
 	    {
 	    	// TO DO Your own code
 	    }
@@ -43,11 +44,29 @@ namespace Application
 		private void receiveFile (String fileName, Transport transport)
 		{
 			// TO DO Your own code
+			byte[] buffer = new byte[BUFSIZE];
+
+			transport.send(Encoding.ASCII.GetBytes(fileName), fileName.Length);
+
+			int size = transport.receive (ref buffer);
+
+			SaveToBinaryFile (fileName,buffer);
+
+
 		}
 
-		private void SaveFile()
+		/// <summary>
+		/// Saves to binary file. https://stackoverflow.com/questions/10337410/saving-data-to-a-file-in-c-sharp
+		/// </summary>
+		/// <param name="filePath">File path.</param>
+		/// <param name="data">Data.</param>
+		private void SaveToBinaryFile(string filePath, byte[] data)
 		{
-
+			using (Stream stream = File.Open(filePath, FileMode.Create))
+				{
+					BinaryFormatter binaryFormatter = new BinaryFormatter();
+					binaryFormatter.Serialize(stream, data);
+				}
 		}
 
 		/// <summary>
@@ -58,18 +77,24 @@ namespace Application
 		/// </param>
 		public static void Main (string[] args)
 		{
-			byte[] buffer = new byte[50];
-			var trans = new Transport (1000);
-			int size = 0;
+			Console.WriteLine (APP);
+			file_client client = new file_client ();
+			Transport transport = new Transport (BUFSIZE);
+			string fileName = "PlainText.txt";
+			client.receiveFile (fileName, transport);
+						
+			//byte[] buffer = new byte[50];
+			//var trans = new Transport (1000);
+			//int size = 0;
 
-			for (int i = 0; i < 10; i++) {
-				size = trans.receive (ref buffer);
-				Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
-			}
+			//for (int i = 0; i < 10; i++) {
+			//	size = trans.receive (ref buffer);
+			//	Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
+			//}
 
-			for (int i = 0; i < 10; i++) {
-				trans.send (buffer, size);
-			}
+			//for (int i = 0; i < 10; i++) {
+			//	trans.send (buffer, size);
+			//}
 
 		}
 	}

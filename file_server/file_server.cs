@@ -35,13 +35,13 @@ namespace Application
 		/// <param name='tl'>
 		/// Tl.
 		/// </param>
-		private void sendFile(String fileName)
+		private void sendFile(String fileName, Transport transport)
 		{
 			// TO DO Your own code
 			byte[] fileBuffer = new byte[BUFSIZE];
-			ReadFile (fileBuffer,fileName);
-			var trans = new Transport (BUFSIZE);
-			trans.send (fileBuffer, fileBuffer.Length);
+			if (ReadFile (fileBuffer, fileName) != 0) {
+				transport.send (fileBuffer, fileBuffer.Length);
+			}
 		}
 
 
@@ -88,14 +88,26 @@ namespace Application
 		public static void Main (string[] args)
 		{
 			file_server server = new file_server ();
-			server.sendFile ("PlainText.txt");
+			Transport transport = new Transport (BUFSIZE);
+			byte[] buffer = new byte[BUFSIZE];
+
+			while (true) {
+				int size = transport.receive (ref buffer);
+
+				if (size != 0) {
+					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
+					server.sendFile (fileName,transport);
+				}
+			}
+
+			
 
 
 			//var buffer = new byte[50];
 			//var trans = new Transport (BUFSIZE);
 			//for (int i = 0; i < 10; i++) {
 			//	var hej = "Bent vil gerne hAve kAge";
-			//	trans.send (Encoding.ASCII.GetBytes(hej), hej.Length);
+			//	trans.send (c, hej.Length);
 			//}
 
 			//int size;
