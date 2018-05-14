@@ -30,7 +30,7 @@ namespace Application
 					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
 
 
-					sendFile (fileName,size,transport);
+					sendFile (fileName,transport);
 				}
 			}
 		}
@@ -47,14 +47,14 @@ namespace Application
 		/// <param name='tl'>
 		/// Tl.
 		/// </param>
-		private void sendFile(String fileName, long fileSize, Transport transport)
+		private void sendFile(string fileName, Transport transport)
 		{
 			// TO DO Your own code
 			byte[] fileBuffer = new byte[BUFSIZE];
 			int len = ReadFile (ref fileBuffer, fileName);
 			if (len != 0) {
 				transport.send (Encoding.ASCII.GetBytes(len.ToString()),len.ToString().Length);
-				transport.send (fileBuffer, (int)fileSize);
+				transport.send (fileBuffer, len);
 			}
 		}
 
