@@ -27,9 +27,24 @@ namespace Application
 		/// <param name='args'>
 		/// Filnavn med evtuelle sti.
 		/// </param>
-	    private file_client()
+		private file_client(string[] args)
 	    {
-	    	// TO DO Your own code
+			if (args.Length == 1) {
+				Transport transport = new Transport (BUFSIZE);
+				string fileName = args [0];
+				byte[] buffer = new byte[BUFSIZE];
+
+				transport.send (Encoding.ASCII.GetBytes (fileName), fileName.Length);
+
+				int size = transport.receive (ref buffer);
+
+				if (size != 0)
+					receiveFile (fileName, int.Parse (Encoding.ASCII.GetString (buffer)), transport);
+				else
+					Console.WriteLine ("The file does not exist on the server.");
+			}
+			else
+				Console.WriteLine ("The arguments provided does not match : ", args.Length);
 	    }
 
 		/// <summary>
@@ -41,19 +56,13 @@ namespace Application
 		/// <param name='transport'>
 		/// Transportlaget
 		/// </param>
-		private void receiveFile (String fileName, Transport transport)
+		private void receiveFile (String fileName, long fileSize,Transport transport)
 		{
 			// TO DO Your own code
-			byte[] buffer = new byte[85];
-			transport.send(Encoding.ASCII.GetBytes(fileName), fileName.Length);
-
-			byte[] buffer = new byte[BUFSIZE];
-			int size = transport.receive (ref buffer);
-			byte[] fileBuffer = new byte[int.Parse (Encoding.ASCII.GetString (buffer))];
-			size = transport.receive (ref fileBuffer);
+			byte[] fileBuffer = new byte[fileSize];
+			int size = transport.receive (ref fileBuffer);
 			var str = Encoding.ASCII.GetString (fileBuffer);
 			var bytes = Encoding.UTF8.GetBytes (str);
-			//File.WriteAllBytes (fileName, buffer);
 			SaveToBinaryFile (fileName, bytes);
 		}
 
@@ -67,8 +76,8 @@ namespace Application
 		{
 			using (FileStream stream = File.OpenWrite(filePath))
 				{
-				stream.Write (data, 0, data.Length);
-				stream.Close ();
+					stream.Write (data, 0, data.Length); 
+					stream.Close ();
 				}
 		}
 
@@ -81,23 +90,8 @@ namespace Application
 		public static void Main (string[] args)
 		{
 			Console.WriteLine (APP);
-			file_client client = new file_client ();
-			Transport transport = new Transport (BUFSIZE);
-			string fileName = "PlainText.txt";
-			client.receiveFile (fileName, transport);
-
-			//byte[] buffer = new byte[50];
-			//var trans = new Transport (1000);
-			//int size = 0;
-
-			//for (int i = 0; i < 10; i++) {
-			//	size = trans.receive (ref buffer);
-			//	Console.WriteLine (Encoding.ASCII.GetString(buffer, 0, size));
-			//}
-
-			//for (int i = 0; i < 10; i++) {
-			//	trans.send (buffer, size);
-			//}
+			Console.Write(args.Length);
+			file_client client = new file_client (args);
 
 		}
 	}
