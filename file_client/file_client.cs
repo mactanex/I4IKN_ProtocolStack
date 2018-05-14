@@ -44,16 +44,19 @@ namespace Application
 		private void receiveFile (String fileName, Transport transport)
 		{
 			// TO DO Your own code
-			byte[] buffer = new byte[BUFSIZE];
+			byte[] buffer = new byte[85];
 
 			transport.send(Encoding.ASCII.GetBytes(fileName), fileName.Length);
 
 			int size = transport.receive (ref buffer);
-
-			SaveToBinaryFile (fileName,buffer);
-
-
+			byte[] fileBuffer = new byte[int.Parse (Encoding.ASCII.GetString (buffer))];
+			size = transport.receive (ref fileBuffer);
+			var str = Encoding.ASCII.GetString (fileBuffer);
+			var bytes = Encoding.UTF8.GetBytes (str);
+			//File.WriteAllBytes (fileName, buffer);
+			SaveToBinaryFile (fileName, bytes);
 		}
+
 
 		/// <summary>
 		/// Saves to binary file. https://stackoverflow.com/questions/10337410/saving-data-to-a-file-in-c-sharp
@@ -62,10 +65,10 @@ namespace Application
 		/// <param name="data">Data.</param>
 		private void SaveToBinaryFile(string filePath, byte[] data)
 		{
-			using (Stream stream = File.Open(filePath, FileMode.Create))
+			using (FileStream stream = File.OpenWrite(filePath))
 				{
-					BinaryFormatter binaryFormatter = new BinaryFormatter();
-					binaryFormatter.Serialize(stream, data);
+				stream.Write (data, 0, data.Length);
+				stream.Close ();
 				}
 		}
 
