@@ -45,9 +45,9 @@ namespace Application
 		{
 			// TO DO Your own code
 			byte[] buffer = new byte[85];
-
 			transport.send(Encoding.ASCII.GetBytes(fileName), fileName.Length);
 
+			byte[] buffer = new byte[BUFSIZE];
 			int size = transport.receive (ref buffer);
 			byte[] fileBuffer = new byte[int.Parse (Encoding.ASCII.GetString (buffer))];
 			size = transport.receive (ref fileBuffer);
@@ -85,7 +85,7 @@ namespace Application
 			Transport transport = new Transport (BUFSIZE);
 			string fileName = "PlainText.txt";
 			client.receiveFile (fileName, transport);
-						
+
 			//byte[] buffer = new byte[50];
 			//var trans = new Transport (1000);
 			//int size = 0;
