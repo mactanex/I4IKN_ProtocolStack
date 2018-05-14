@@ -43,11 +43,11 @@ namespace Application
 		/// </param>
 		private void receiveFile (String fileName, Transport transport)
 		{
-			// TO DO Your own code
-			byte[] buffer = new byte[BUFSIZE];
+			// TO DO Your own byte[] buffer = new byte[BUFSIZE];
 
 			transport.send(Encoding.ASCII.GetBytes(fileName), fileName.Length);
 
+			byte[] buffer = new byte[BUFSIZE];
 			int size = transport.receive (ref buffer);
 
 			SaveToBinaryFile (fileName,buffer);
@@ -82,7 +82,7 @@ namespace Application
 			Transport transport = new Transport (BUFSIZE);
 			string fileName = "PlainText.txt";
 			client.receiveFile (fileName, transport);
-						
+
 			//byte[] buffer = new byte[50];
 			//var trans = new Transport (1000);
 			//int size = 0;

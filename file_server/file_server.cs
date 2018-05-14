@@ -39,8 +39,10 @@ namespace Application
 		{
 			// TO DO Your own code
 			byte[] fileBuffer = new byte[BUFSIZE];
-			if (ReadFile (fileBuffer, fileName) != 0) {
-				transport.send (fileBuffer, fileBuffer.Length);
+			int len = ReadFile (ref fileBuffer, fileName);
+			if (len != 0) {
+				transport.send (Encoding.ASCII.GetBytes(len.ToString()),len.ToString().Length);
+				transport.send (fileBuffer, len);
 			}
 		}
 
@@ -70,12 +72,13 @@ namespace Application
 		/// Reads the file. 
 		/// </summary>
 		/// <returns>length of file</returns>
-		private int ReadFile(byte[] fileBuffer, string fileName)
+		private int ReadFile(ref byte[] fileBuffer, string fileName)
 		{
-			string path = @"/root/Desktop/Projects/Exercise_11_file_server/I4IKN_ProtocolStack/" + fileName;
+			string path = @"/home/ikn/I4IKN_ProtocolStack/" + fileName;
 			FileStream fileStream = File.Open (path, FileMode.Open, FileAccess.Read);
 			fileBuffer = new byte[fileStream.Length];
 			fileStream.Read (fileBuffer, 0, (int)fileStream.Length);
+			fileStream.Close ();
 			return fileBuffer.Length;
 		}
 
@@ -96,6 +99,8 @@ namespace Application
 
 				if (size != 0) {
 					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
+
+
 					server.sendFile (fileName,transport);
 				}
 			}
