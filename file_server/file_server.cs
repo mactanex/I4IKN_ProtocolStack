@@ -70,7 +70,7 @@ namespace Application
 					totalLength -= currentPacketLength;
 				}
 				byte[] fileBuffer = new byte[currentPacketLength];
-				ReadChunk (fileStream, fileBuffer);
+				ReadChunk (fileStream, ref fileBuffer);
 
 				transport.send (fileBuffer, (int)currentPacketLength);
 			}
@@ -83,7 +83,7 @@ namespace Application
 		/// <returns>index of the chunk</returns>
 		/// <param name="stream">Stream.</param>
 		/// <param name="chunk">Chunk.</param>
-		private int ReadChunk(FileStream stream, byte[] chunk)
+		private int ReadChunk(FileStream stream, ref byte[] chunk)
 		{
 			int index = 0;
 			while (index < chunk.Length) {
