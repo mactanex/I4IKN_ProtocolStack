@@ -50,11 +50,29 @@ namespace Application
 		private void sendFile(string fileName, Transport transport)
 		{
 			// TO DO Your own code
-			byte[] fileBuffer = new byte[BUFSIZE];
-			int len = ReadFile (ref fileBuffer, fileName);
-			if (len != 0) {
-				transport.send (Encoding.ASCII.GetBytes(len.ToString()),len.ToString().Length);
-				transport.send (fileBuffer, len);
+			string path = @"/home/ikn/I4IKN_ProtocolStack/" + fileName;
+			FileStream fileStream = File.Open (path, FileMode.Open, FileAccess.Read);
+
+			long totalLength = fileStream.Length;
+			long currentPacketLength = 0;
+			int nOfChunks = Convert.ToInt32(Math.Round (Convert.ToDouble(totalLength) / Convert.ToDouble(BUFSIZE)));
+
+
+			transport.send (Encoding.ASCII.GetBytes(len.ToString()),len.ToString().Length);
+
+			if (totalLength != 0) {
+				for (int i = 0; i < nOfChunks; i++) {
+					if (totalLength > BUFSIZE) {
+						currentPacketLength = BUFSIZE;
+					} else {
+						currentPacketLength = totalLength;
+					}
+					totalLength -= currentPacketLength;
+				}
+				byte[] fileBuffer = new byte[currentPacketLength];
+				ReadChunk (fileStream, fileBuffer);
+
+				transport.send (fileBuffer, currentPacketLength);
 			}
 		}
 
@@ -86,9 +104,7 @@ namespace Application
 		/// <returns>length of file</returns>
 		private int ReadFile(ref byte[] fileBuffer, string fileName)
 		{
-			string path = @"/home/ikn/I4IKN_ProtocolStack/" + fileName;
-			FileStream fileStream = File.Open (path, FileMode.Open, FileAccess.Read);
-			fileBuffer = new byte[fileStream.Length];
+			fileBuffer = new byte[(int)fileStream.Length];
 			fileStream.Read (fileBuffer, 0, (int)fileStream.Length);
 			fileStream.Close ();
 			return fileBuffer.Length;
