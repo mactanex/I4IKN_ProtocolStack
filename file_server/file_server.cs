@@ -30,10 +30,10 @@ namespace Application
 
 
 				if (size != 0) {
-					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
+					string filePath = Encoding.UTF8.GetString (buffer, 0, size);
 
 
-					sendFile (fileName,transport);
+					sendFile (filePath,transport);
 				}
 			}
 		}
@@ -53,11 +53,12 @@ namespace Application
 		private void sendFile(string filePath, Transport transport)
 		{
 			// TO DO Your own code
-			if (LIB.check_File_Exists(filePath) == 0)
+			string fileName = LIB.extractFileName(@filePath);
+
+			if (LIB.check_File_Exists(@filePath) == 0 )
 				return;
-				
-				
-			FileStream fileStream = File.Open (filePath, FileMode.Open, FileAccess.Read);
+
+			FileStream fileStream = File.Open (@filePath, FileMode.Open);
 
 			long totalLength = fileStream.Length;
 			long currentPacketLength = 0;

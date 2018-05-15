@@ -35,9 +35,9 @@ namespace Application
 				string filePath = args [0];
 				string fileName = LIB.extractFileName (filePath);
 
-				transport.send (Encoding.ASCII.GetBytes (filePath), filePath.Length);
+				transport.send (Encoding.UTF8.GetBytes (filePath), filePath.Length);
 				int size = transport.receive (ref buffer);
-				int fileSize = int.Parse (Encoding.ASCII.GetString (buffer, 0, size));
+				int fileSize = int.Parse (Encoding.UTF8.GetString (buffer, size));
 
 				if ( fileSize > 0)
 					receiveFile (fileName, fileSize, transport);
@@ -66,7 +66,7 @@ namespace Application
 			var offset = 0;
 
 			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
-			while((readSize = transport.receive(ref fileBuffer)) > 0)
+			while(readSize = transport.receive(fileBuffer) > 0)
 			{
 				newFile.Write (fileBuffer, offset, readSize);
 				offset += readSize;
