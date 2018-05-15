@@ -32,7 +32,7 @@ namespace Application
 				if (size != 0) {
 					string filePath = Encoding.UTF8.GetString (buffer, 0, size);
 
-					string tmp = Path.GetFullPath (filePath);
+					string tmp = Path.GetFullPath ("File_Server_Home/"+filePath);
 					sendFile (tmp,transport);
 
 				}
@@ -61,6 +61,7 @@ namespace Application
 			if (LIB.check_File_Exists(@filePath) == 0 )
 				return;
 
+			Console.WriteLine ("Sending file: " + filePath + " to client");
 			FileStream fileStream = File.Open (@filePath, FileMode.Open);
 
 			long totalLength = fileStream.Length;
@@ -86,6 +87,7 @@ namespace Application
 					transport.send (fileBuffer, (int)currentPacketLength);
 
 				}
+				Console.WriteLine ("The requested file was sent");
 			}
 			fileStream.Close ();
 		}
@@ -119,6 +121,7 @@ namespace Application
 		/// </param>
 		public static void Main (string[] args)
 		{
+			Console.WriteLine (APP);
 			file_server server = new file_server ();
 		}
 	}

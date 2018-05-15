@@ -33,15 +33,18 @@ namespace Application
 				Transport transport = new Transport (BUFSIZE);
 				byte[] buffer = new byte[BUFSIZE];
 				string filePath = args [0];
-				string fileName = LIB.extractFileName (filePath);
+				Console.WriteLine ("Requesting file: " + filePath + " from server");
 
 				transport.send (Encoding.UTF8.GetBytes (filePath), filePath.Length);
 				int size = transport.receive (ref buffer);
-
-				int fileSize = int.Parse (Encoding.UTF8.GetString (buffer, 0, size));
-
-				if ( fileSize > 0)
-					receiveFile (fileName, fileSize, transport);
+				int fileSize = 0;
+				if (size != 0) {
+					fileSize = int.Parse (Encoding.UTF8.GetString (buffer, 0, size));
+					Console.WriteLine ("The requested file is found on the server");
+					if (fileSize > 0) {
+						receiveFile (filePath, fileSize, transport);
+					}
+				}
 				else
 					Console.WriteLine ("The file does not exist on the server.");
 			}
@@ -69,9 +72,15 @@ namespace Application
 			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
 			while((readSize = transport.receive(ref fileBuffer)) > 0)
 			{
+				Console.WriteLine ("Receiving file..");
 				newFile.Write (fileBuffer, offset, readSize);
 				offset += readSize;
 			}
+
+			if (offset == fileSize)
+				Console.WriteLine ("The requested file was received");
+			else
+				Console.WriteLine ("An error occured while downloading file..");
 
 			newFile.Close ();
 		}
@@ -86,7 +95,6 @@ namespace Application
 		public static void Main (string[] args)
 		{
 			Console.WriteLine (APP);
-			Console.Write(args.Length);
 			file_client client = new file_client (args);
 
 		}
