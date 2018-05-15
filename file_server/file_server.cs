@@ -22,9 +22,12 @@ namespace Application
 		{
 			Transport transport = new Transport (BUFSIZE);
 			byte[] buffer = new byte[BUFSIZE];
-
+			int size = 0;
 			while (true) {
-				int size = transport.receive (ref buffer);
+				
+				while(size = transport.receive (ref buffer) == 0)
+				{};
+
 
 				if (size != 0) {
 					string fileName = Encoding.ASCII.GetString (buffer, 0, size);
