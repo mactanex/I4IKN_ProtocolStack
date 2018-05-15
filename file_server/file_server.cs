@@ -68,11 +68,13 @@ namespace Application
 						currentPacketLength = totalLength;
 					}
 					totalLength -= currentPacketLength;
-				}
-				byte[] fileBuffer = new byte[currentPacketLength];
-				ReadChunk (fileStream, ref fileBuffer);
+				
+					byte[] fileBuffer = new byte[currentPacketLength];
+					ReadChunk (fileStream, ref fileBuffer);
 
-				transport.send (fileBuffer, (int)currentPacketLength);
+					transport.send (fileBuffer, (int)currentPacketLength);
+
+				}
 			}
 		}
 
