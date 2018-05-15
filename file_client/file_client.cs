@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Text;
 using Transportlaget;
@@ -26,25 +27,25 @@ namespace Application
 		/// <param name='args'>
 		/// Filnavn med evtuelle sti.
 		/// </param>
-	    private file_client(String[] args)
+		private file_client(string[] args)
 	    {
-            string file = args[1];
+			if (args.Length == 1) {
+				Transport transport = new Transport (BUFSIZE);
+				string fileName = args [0];
+				byte[] buffer = new byte[BUFSIZE];
 
+				transport.send (Encoding.ASCII.GetBytes (fileName), fileName.Length);
 
-            System.Net.Sockets.TcpClient ClientSocket = new System.Net.Sockets.TcpClient();
-            ClientSocket.Connect(args[0], PORT);
-            ClientSocket.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            NetworkStream ServerStream = ClientSocket.GetStream();
-            LIB.writeTextTCP(ServerStream, file);
-            ServerStream.Flush();
-            string fileName = LIB.extractFileName(file);
+				int size = transport.receive (ref buffer);
 
-            receiveFile(fileName, ServerStream);
-
-            ServerStream.Close();
-            ClientSocket.Dispose();
-            ClientSocket.Close();
-        }
+				if (size != 0)
+					receiveFile (fileName, int.Parse (Encoding.ASCII.GetString (buffer)), transport);
+				else
+					Console.WriteLine ("The file does not exist on the server.");
+			}
+			else
+				Console.WriteLine ("The arguments provided does not match : ", args.Length);
+	    }
 
 		/// <summary>
 		/// Receives the file.
@@ -55,43 +56,43 @@ namespace Application
 		/// <param name='transport'>
 		/// Transportlaget
 		/// </param>
-		private void receiveFile (String fileName, Transport transport)
+		private void receiveFile (String fileName, long fileSize,Transport transport)
 		{
-            Byte[] instream = new byte[BUFSIZE];
-            int receivedBytes;
-            int totalRecBytes = 0;
-            //int NoOfPackets = Convert.ToInt32 (Math.Ceiling (Convert.ToDouble (fileSize) / Convert.ToDouble (BUFSIZE)));
-            //for(){};
+			// TO DO Your own code
+			byte[] fileBuffer = new byte[fileSize];
+			int size = transport.receive (ref fileBuffer);
+			var str = Encoding.ASCII.GetString (fileBuffer);
+			var bytes = Encoding.UTF8.GetBytes (str);
+			SaveToBinaryFile (fileName, bytes);
+		}
 
-            //io.Read (instream, 0, BUFSIZE);
-            //string file = System.Text.Encoding.ASCII.GetString (instream);
 
-            FileStream newFile = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write);
-            while ((receivedBytes = io.Read(instream, 0, instream.Length)) > 0)
-            {
-                newFile.Write(instream, 0, receivedBytes);
-                totalRecBytes += receivedBytes;
-            }
-            newFile.Close();
-
-            Console.WriteLine(fileName);
-
-            io.Close();
-
-        }
-
-        /// <summary>
-        /// The entry point of the program, where the program control starts and ends.
-        /// </summary>
-        /// <param name='args'>
-        /// First argument: Filname
-        /// </param>
-        public static void Main (string[] args)
+		/// <summary>
+		/// Saves to binary file. https://stackoverflow.com/questions/10337410/saving-data-to-a-file-in-c-sharp
+		/// </summary>
+		/// <param name="filePath">File path.</param>
+		/// <param name="data">Data.</param>
+		private void SaveToBinaryFile(string filePath, byte[] data)
 		{
-			byte[] buffer = new byte[50];
-			var trans = new Transport (1000);
-			trans.receive (ref buffer);
-			Console.WriteLine (Encoding.ASCII.GetString (buffer));
+			using (FileStream stream = File.OpenWrite(filePath))
+				{
+					stream.Write (data, 0, data.Length); 
+					stream.Close ();
+				}
+		}
+
+		/// <summary>
+		/// The entry point of the program, where the program control starts and ends.
+		/// </summary>
+		/// <param name='args'>
+		/// First argument: Filname
+		/// </param>
+		public static void Main (string[] args)
+		{
+			Console.WriteLine (APP);
+			Console.Write(args.Length);
+			file_client client = new file_client (args);
+
 		}
 	}
 }
