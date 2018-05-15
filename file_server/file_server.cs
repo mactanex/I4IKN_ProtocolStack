@@ -50,11 +50,14 @@ namespace Application
 		/// <param name='tl'>
 		/// Tl.
 		/// </param>
-		private void sendFile(string fileName, Transport transport)
+		private void sendFile(string filePath, Transport transport)
 		{
 			// TO DO Your own code
-			string path = @"/home/ikn/I4IKN_ProtocolStack/" + fileName;
-			FileStream fileStream = File.Open (path, FileMode.Open, FileAccess.Read);
+			if (LIB.check_File_Exists(filePath) == 0)
+				return;
+				
+				
+			FileStream fileStream = File.Open (filePath, FileMode.Open, FileAccess.Read);
 
 			long totalLength = fileStream.Length;
 			long currentPacketLength = 0;

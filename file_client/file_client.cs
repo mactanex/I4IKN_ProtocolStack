@@ -31,15 +31,16 @@ namespace Application
 	    {
 			if (args.Length == 1) {
 				Transport transport = new Transport (BUFSIZE);
-				string fileName = args [0];
 				byte[] buffer = new byte[BUFSIZE];
+				string filePath = args [0];
+				string fileName = LIB.extractFileName (filePath);
 
-				transport.send (Encoding.ASCII.GetBytes (fileName), fileName.Length);
-
+				transport.send (Encoding.ASCII.GetBytes (filePath), filePath.Length);
 				int size = transport.receive (ref buffer);
+				int fileSize = int.Parse (Encoding.ASCII.GetString (buffer, size));
 
-				if (size != 0)
-					receiveFile (fileName, int.Parse (Encoding.ASCII.GetString (buffer)), transport);
+				if ( fileSize > 0)
+					receiveFile (fileName, fileSize, transport);
 				else
 					Console.WriteLine ("The file does not exist on the server.");
 			}
@@ -59,27 +60,21 @@ namespace Application
 		private void receiveFile (String fileName, long fileSize,Transport transport)
 		{
 			// TO DO Your own code
-			byte[] fileBuffer = new byte[fileSize];
-			int size = transport.receive (ref fileBuffer);
-			var str = Encoding.ASCII.GetString (fileBuffer);
-			var bytes = Encoding.UTF8.GetBytes (str);
-			SaveToBinaryFile (fileName, bytes);
+			byte[] fileBuffer = new byte[BUFSIZE];
+
+			var readSize = 0;
+			var offset = 0;
+
+			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
+			while(readSize = transport.receive(fileBuffer) > 0)
+			{
+				newFile.Write (fileBuffer, offset, readSize);
+				offset += readSize;
+			}
+
+			newFile.Close ();
 		}
 
-
-		/// <summary>
-		/// Saves to binary file. https://stackoverflow.com/questions/10337410/saving-data-to-a-file-in-c-sharp
-		/// </summary>
-		/// <param name="filePath">File path.</param>
-		/// <param name="data">Data.</param>
-		private void SaveToBinaryFile(string filePath, byte[] data)
-		{
-			using (FileStream stream = File.OpenWrite(filePath))
-				{
-					stream.Write (data, 0, data.Length); 
-					stream.Close ();
-				}
-		}
 
 		/// <summary>
 		/// The entry point of the program, where the program control starts and ends.
