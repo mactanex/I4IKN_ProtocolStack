@@ -25,7 +25,7 @@ namespace Application
 			int size = 0;
 			while (true) {
 				
-				while(size = transport.receive (ref buffer) == 0)
+				while((size = transport.receive (ref buffer)) == 0)
 				{};
 
 
