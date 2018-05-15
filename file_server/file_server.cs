@@ -58,7 +58,7 @@ namespace Application
 			int nOfChunks = Convert.ToInt32(Math.Round (Convert.ToDouble(totalLength) / Convert.ToDouble(BUFSIZE)));
 
 
-			transport.send (Encoding.ASCII.GetBytes(len.ToString()),len.ToString().Length);
+			transport.send (Encoding.ASCII.GetBytes(totalLength.ToString()),totalLength.ToString().Length);
 
 			if (totalLength != 0) {
 				for (int i = 0; i < nOfChunks; i++) {
@@ -72,7 +72,7 @@ namespace Application
 				byte[] fileBuffer = new byte[currentPacketLength];
 				ReadChunk (fileStream, fileBuffer);
 
-				transport.send (fileBuffer, currentPacketLength);
+				transport.send (fileBuffer, (int)currentPacketLength);
 			}
 		}
 
@@ -95,20 +95,7 @@ namespace Application
 			}
 			return index;
 		}
-			
-	
 
-		/// <summary>
-		/// Reads the file. 
-		/// </summary>
-		/// <returns>length of file</returns>
-		private int ReadFile(ref byte[] fileBuffer, string fileName)
-		{
-			fileBuffer = new byte[(int)fileStream.Length];
-			fileStream.Read (fileBuffer, 0, (int)fileStream.Length);
-			fileStream.Close ();
-			return fileBuffer.Length;
-		}
 
 		/// <summary>
 		/// The entry point of the program, where the program control starts and ends.
