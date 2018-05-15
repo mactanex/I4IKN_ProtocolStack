@@ -136,18 +136,22 @@ namespace Transportlaget
 		public int receive (ref byte[] buf)
 		{
 			// TO DO Your own code
-			int size = link.receive(ref buffer);
+			int size = ReadLink(ref buffer);
+			if (size == 0)
+				return 0; // Nothing read
 
 			while (!checksum.checkChecksum (buffer, size) || buffer[(int)TransCHKSUM.SEQNO] != seqNo) {
 				sendAck (false);
-				size = link.receive (ref buffer);
+				size = ReadLink (ref buffer);
+				if (size == 0)
+					return 0; // Nothing read
 			}
 
 			sendAck (true);
 			nextSeqNo ();
-			size -= (int)TransSize.ACKSIZE;
+			size = buf.Length < size ? buf.Length : size;
 
-			Array.Copy (buffer,(int)TransSize.ACKSIZE,buf,0,size);
+			Array.Copy (buffer,(int)TransSize.ACKSIZE,buf,0, size);
 
 			return size;
 		}
@@ -156,5 +160,28 @@ namespace Transportlaget
         {
             seqNo = (byte)((seqNo + 1) % 2);
         }
+
+		private int ReadLink(ref byte[] buff)
+		{
+			int size = 0;
+			while (errorCount < 5) {
+				try
+				{
+					size = link.receive(ref buff);
+					break;
+				}catch(TimeoutException) {
+					errorCount++;
+					if (errorCount == 5) {
+						errorCount = 0;
+						return 0;
+					}
+				}
+			}
+			errorCount = 0;
+			return size;
+		}
+
 	}
+
+
 }
