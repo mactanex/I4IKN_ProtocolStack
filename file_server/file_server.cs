@@ -32,9 +32,11 @@ namespace Application
 				if (size != 0) {
 					string filePath = Encoding.UTF8.GetString (buffer, 0, size);
 
+					string tmp = Path.GetFullPath (filePath);
+					sendFile (tmp,transport);
 
-					sendFile (filePath,transport);
 				}
+				transport = new Transport (BUFSIZE);
 			}
 		}
 
@@ -53,8 +55,9 @@ namespace Application
 		private void sendFile(string filePath, Transport transport)
 		{
 			// TO DO Your own code
-			string fileName = LIB.extractFileName(@filePath);
-
+			//string fileName = LIB.extractFileName(@filePath);
+			//string currentDirectory = Directory.GetCurrentDirectory ();
+			//filePath = currentDirectory + "/" + "PlainText.txt";
 			if (LIB.check_File_Exists(@filePath) == 0 )
 				return;
 
@@ -62,10 +65,11 @@ namespace Application
 
 			long totalLength = fileStream.Length;
 			long currentPacketLength = 0;
-			int nOfChunks = Convert.ToInt32(Math.Round (Convert.ToDouble(totalLength) / Convert.ToDouble(BUFSIZE)));
+			int nOfChunks = Convert.ToInt32(Math.Ceiling (Convert.ToDouble(totalLength) / Convert.ToDouble(BUFSIZE)));
 
-
-			transport.send (Encoding.ASCII.GetBytes(totalLength.ToString()),totalLength.ToString().Length);
+			byte[] lengthToSend = Encoding.UTF8.GetBytes (totalLength.ToString ());
+			var tmp = lengthToSend.Length;
+			transport.send (lengthToSend,lengthToSend.Length);
 
 			if (totalLength != 0) {
 				for (int i = 0; i < nOfChunks; i++) {
@@ -83,6 +87,7 @@ namespace Application
 
 				}
 			}
+			fileStream.Close ();
 		}
 
 

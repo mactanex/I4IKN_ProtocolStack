@@ -149,7 +149,7 @@ namespace Transportlaget
 
 			sendAck (true);
 			nextSeqNo ();
-			size = buf.Length < size ? buf.Length : size;
+			size = buf.Length < size-(int)TransSize.ACKSIZE ? buf.Length : size-(int)TransSize.ACKSIZE;
 
 			Array.Copy (buffer,(int)TransSize.ACKSIZE,buf,0, size);
 

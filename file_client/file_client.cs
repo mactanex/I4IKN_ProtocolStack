@@ -28,7 +28,7 @@ namespace Application
 		/// Filnavn med evtuelle sti.
 		/// </param>
 		private file_client(string[] args)
-	    {
+		{
 			if (args.Length == 1) {
 				Transport transport = new Transport (BUFSIZE);
 				byte[] buffer = new byte[BUFSIZE];
@@ -37,7 +37,8 @@ namespace Application
 
 				transport.send (Encoding.UTF8.GetBytes (filePath), filePath.Length);
 				int size = transport.receive (ref buffer);
-				int fileSize = int.Parse (Encoding.UTF8.GetString (buffer, size));
+
+				int fileSize = int.Parse (Encoding.UTF8.GetString (buffer, 0, size));
 
 				if ( fileSize > 0)
 					receiveFile (fileName, fileSize, transport);
@@ -46,7 +47,7 @@ namespace Application
 			}
 			else
 				Console.WriteLine ("The arguments provided does not match : ", args.Length);
-	    }
+		}
 
 		/// <summary>
 		/// Receives the file.
@@ -66,7 +67,7 @@ namespace Application
 			var offset = 0;
 
 			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
-			while(readSize = transport.receive(fileBuffer) > 0)
+			while((readSize = transport.receive(ref fileBuffer)) > 0)
 			{
 				newFile.Write (fileBuffer, offset, readSize);
 				offset += readSize;
