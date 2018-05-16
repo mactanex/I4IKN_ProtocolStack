@@ -48,6 +48,8 @@ namespace Transportlaget
 		/// </summary>
 		private int recvSize = 0;
 
+		private int noiseSimulation = 0;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Transport"/> class.
 		/// </summary>
@@ -95,6 +97,12 @@ namespace Transportlaget
 				(ackType ? (byte)buffer [(int)TransCHKSUM.SEQNO] : (byte)(buffer [(int)TransCHKSUM.SEQNO] + 1) % 2);
 			ackBuf [(int)TransCHKSUM.TYPE] = (byte)(int)TransType.ACK;
 			checksum.calcChecksum (ref ackBuf, (int)TransSize.ACKSIZE);
+
+			if (++noiseSimulation == 3) {
+				ackBuf [0]++;
+				noiseSimulation = 0;
+			}
+
 			link.send(ackBuf, (int)TransSize.ACKSIZE);
 		}
 
@@ -117,6 +125,12 @@ namespace Transportlaget
 				buffer[i + (int)TransSize.ACKSIZE] = buf[i];
 			}
 			checksum.calcChecksum(ref buffer, size + (int)TransSize.ACKSIZE);
+
+			// For noice simulation
+			if (++noiseSimulation == 3) {
+				buffer [0]++;
+				noiseSimulation = 0;
+			}
 
 			// Send it
 			if (!SendLink (ref buffer, size + (int)TransSize.ACKSIZE))
