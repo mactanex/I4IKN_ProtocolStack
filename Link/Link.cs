@@ -31,7 +31,7 @@ namespace Linklaget
 		{
 			// Create a new SerialPort object with default settings.
 
-			serialPort = new SerialPort("/dev/ttyS1",115200,Parity.None,8,StopBits.One);
+			serialPort = new SerialPort("COM3",115200,Parity.None,8,StopBits.One);
 
 			if(!serialPort.IsOpen)
 				serialPort.Open();

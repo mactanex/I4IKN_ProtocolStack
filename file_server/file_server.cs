@@ -25,7 +25,7 @@ namespace Application
 			int size = 0;
 			while (true) {
 				
-				while((size = transport.receive (ref buffer)) == 0)
+				while((size = transport.Receive(ref buffer)) == 0)
 				{};
 
 
@@ -57,7 +57,7 @@ namespace Application
 
 			var fileSize = (int)LIB.check_File_Exists (@filePath);
 			var lengthToSend = Encoding.UTF8.GetBytes (fileSize.ToString());
-			transport.send (lengthToSend,lengthToSend.Length);
+			transport.Send (lengthToSend,lengthToSend.Length);
 
 			if (fileSize != 0) {
 
@@ -69,7 +69,7 @@ namespace Application
 				using (var fileStream = File.Open (@filePath, FileMode.Open)) {
 
 					while ((bytesRead = ReadChunk (fileStream, ref fileBuf)) != 0) {
-						transport.send (fileBuf, bytesRead);
+						transport.Send (fileBuf, bytesRead);
 					}
 				
 				}

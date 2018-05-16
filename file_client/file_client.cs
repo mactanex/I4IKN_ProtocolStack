@@ -35,8 +35,8 @@ namespace Application
 				string filePath = args [0];
 				Console.WriteLine ("Requesting file: " + filePath + " from server");
 
-				transport.send (Encoding.UTF8.GetBytes (filePath), filePath.Length);
-				int size = transport.receive (ref buffer);
+				transport.Send (Encoding.UTF8.GetBytes (filePath), filePath.Length);
+				int size = transport.Receive(ref buffer);
 				int fileSize = 0;
 				if (size != 0) {
 					fileSize = int.Parse (Encoding.UTF8.GetString (buffer, 0, size));
@@ -72,7 +72,7 @@ namespace Application
 			Console.WriteLine ("Receiving file..");
 
 			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
-			while((readSize = transport.receive(ref fileBuffer)) > 0)
+			while((readSize = transport.Receive(ref fileBuffer)) > 0)
 			{
 				newFile.Write (fileBuffer, 0, readSize);
 				offset += readSize;
