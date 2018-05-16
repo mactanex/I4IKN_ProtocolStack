@@ -43,55 +43,13 @@ namespace Transportlaget
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Transport"/> class.
 		/// </summary>
-		public Transport (int BUFSIZE)
+		public Transport (int buffSize)
 		{
-			_link = new Link(BUFSIZE+(int)TransSize.ACKSIZE);
+			_link = new Link(buffSize+(int)TransSize.ACKSIZE);
 			_checksum = new Checksum();
-			_buffer = new byte[BUFSIZE+(int)TransSize.ACKSIZE];
+			_buffer = new byte[buffSize+(int)TransSize.ACKSIZE];
 			_seqNr = 0;
 			_errorCount = 0;
-		}
-
-		/// <summary>
-		/// Receives the ack.
-		/// </summary>
-		/// <returns>
-		/// The ack.
-		/// </returns>
-		private byte ReceiveAck()
-		{
-            byte[] buf = new byte[(int)TransSize.ACKSIZE];
-            int size = _link.receive(ref buf);
-
-            if (size != (int)TransSize.ACKSIZE) return DefaultSeqNr;
-
-            if(!_checksum.checkChecksum(buf, (int)TransSize.ACKSIZE) || 
-				buf[(int)TransCHKSUM.SEQNO] != _seqNr || buf[(int)TransCHKSUM.TYPE] != (int)TransType.ACK)
-            return DefaultSeqNr;
-
-            return _seqNr;
-		}
-
-		/// <summary>
-		/// Sends the ack.
-		/// </summary>
-		/// <param name='ackType'>
-		/// Ack type.
-		/// </param>
-		private void SendAck (bool ackType)
-		{
-			byte[] ackBuf = new byte[(int)TransSize.ACKSIZE];
-			ackBuf [(int)TransCHKSUM.SEQNO] = (byte)
-				(ackType ? _buffer [(int)TransCHKSUM.SEQNO] : (byte)(_buffer[(int)TransCHKSUM.SEQNO] + 1) % 2);
-			ackBuf [(int)TransCHKSUM.TYPE] = (byte)(int)TransType.ACK;
-			_checksum.calcChecksum (ref ackBuf, (int)TransSize.ACKSIZE);
-
-			if (++_noiseSimulation == 2) {
-				ackBuf [0]++;
-			    _noiseSimulation = 0;
-			}
-
-			_link.send(ackBuf, (int)TransSize.ACKSIZE);
 		}
 
 		/// <summary>
@@ -114,7 +72,7 @@ namespace Transportlaget
 		        {
 		            do
 		            {
-		                _link.send(_buffer, packageSize);
+		                _link.Send(_buffer, packageSize);
 		            } while (ReceiveAck() != _seqNr);
 		            NextSeqNo();
 		            break;
@@ -136,7 +94,7 @@ namespace Transportlaget
 	        {
 	            try
 	            {
-	                while ((readSize = _link.receive(ref _buffer)) > 0)
+	                while ((readSize = _link.Receive(ref _buffer)) > 0)
 	                {
 	                    if (_checksum.checkChecksum(_buffer, readSize))
 	                    {
@@ -167,10 +125,55 @@ namespace Transportlaget
 	        return readSize;
 	    }
 
-		private void NextSeqNo()
-        {
-            _seqNr = (byte)((_seqNr + 1) % 2);
-        }
+        #region Utility
+
+	    /// <summary>
+	    /// Receives the ack.
+	    /// </summary>
+	    /// <returns>
+	    /// The ack.
+	    /// </returns>
+	    private byte ReceiveAck()
+	    {
+	        byte[] buf = new byte[(int)TransSize.ACKSIZE];
+	        int size = _link.Receive(ref buf);
+
+	        if (size != (int)TransSize.ACKSIZE) return DefaultSeqNr;
+
+	        if (!_checksum.checkChecksum(buf, (int)TransSize.ACKSIZE) ||
+	            buf[(int)TransCHKSUM.SEQNO] != _seqNr || buf[(int)TransCHKSUM.TYPE] != (int)TransType.ACK)
+	            return DefaultSeqNr;
+
+	        return _seqNr;
+	    }
+
+	    /// <summary>
+	    /// Sends the ack.
+	    /// </summary>
+	    /// <param name='ackType'>
+	    /// Ack type.
+	    /// </param>
+	    private void SendAck(bool ackType)
+	    {
+	        byte[] ackBuf = new byte[(int)TransSize.ACKSIZE];
+	        ackBuf[(int)TransCHKSUM.SEQNO] = (byte)
+	            (ackType ? _buffer[(int)TransCHKSUM.SEQNO] : (byte)(_buffer[(int)TransCHKSUM.SEQNO] + 1) % 2);
+	        ackBuf[(int)TransCHKSUM.TYPE] = (byte)(int)TransType.ACK;
+	        _checksum.calcChecksum(ref ackBuf, (int)TransSize.ACKSIZE);
+
+	        if (++_noiseSimulation == 2)
+	        {
+	            ackBuf[0]++;
+	            _noiseSimulation = 0;
+	        }
+
+	        _link.Send(ackBuf, (int)TransSize.ACKSIZE);
+	    }
+
+        private void NextSeqNo()
+	    {
+	        _seqNr = (byte)((_seqNr + 1) % 2);
+	    }
 
 	    private int ConstructPackage(byte[] data, int size)
 	    {
@@ -184,5 +187,9 @@ namespace Transportlaget
 	        _checksum.calcChecksum(ref _buffer, size);
 	        return size;
 	    }
+
+        #endregion
+
+
     }
 }

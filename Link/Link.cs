@@ -14,36 +14,36 @@ namespace Linklaget
 		/// <summary>
 		/// The DELIMITE for slip protocol.
 		/// </summary>
-		const byte DELIMITER = (byte)'A';
+		const byte Delimiter = (byte)'A';
 		/// <summary>
 		/// The buffer for link.
 		/// </summary>
-		private byte[] buffer;
+		private readonly byte[] _buffer;
 
 	    /// <summary>
 	    /// The serial port.
 	    /// </summary>
-	    private static SerialPort serialPort = null;
+	    private static SerialPort _serialPort = null;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="link"/> class.
 		/// </summary>
-		public Link (int BUFSIZE)
+		public Link (int buffSize)
 		{
 			// Create a new SerialPort object with default settings.
 
-			serialPort = serialPort ?? new SerialPort("COM5",115200,Parity.None,8,StopBits.One);
+			_serialPort = _serialPort ?? new SerialPort("COM5",115200,Parity.None,8,StopBits.One);
 
-			if(!serialPort.IsOpen)
-				serialPort.Open();
+			if(!_serialPort.IsOpen)
+				_serialPort.Open();
 
-			buffer = new byte[(BUFSIZE*2)];
+			_buffer = new byte[(buffSize*2) + 2]; // Added two extra for delimeters
 
 			// Uncomment the next line to use timeout
-			serialPort.ReadTimeout = 500;
+			_serialPort.ReadTimeout = 500;
 
-			serialPort.DiscardInBuffer ();
-			serialPort.DiscardOutBuffer ();
+			_serialPort.DiscardInBuffer ();
+			_serialPort.DiscardOutBuffer ();
 		}
 
 		/// <summary>
@@ -55,11 +55,10 @@ namespace Linklaget
 		/// <param name='size'>
 		/// Size.
 		/// </param>
-		public void send (byte[] buf, int size)
+		public void Send (byte[] buf, int size)
 		{
 			var byteCount = Frame (buf, size);
-			serialPort.Write(buffer, 0, byteCount);
-	    	// TO DO Your own code
+			_serialPort.Write(_buffer, 0, byteCount);
 		}
 
 		/// <summary>
@@ -71,83 +70,104 @@ namespace Linklaget
 		/// <param name='size'>
 		/// Size.
 		/// </param>
-		public int receive (ref byte[] buf)
+		public int Receive (ref byte[] buf)
 		{			
-			while(!BeginReceive()){}
 			var sizeWithDelimiter = Receive ();
-			var inserted = Deframe (ref buf, sizeWithDelimiter);
-			return inserted;
+			var size = Deframe (ref buf, sizeWithDelimiter);
+			return size;
 		}
 
-		private bool BeginReceive()
-		{
-			var received = (byte)serialPort.ReadByte ();
-			if(received == DELIMITER)
-				return true;
+        #region Receive Utility
 
-			return false;
-		}
-			
-		private int Receive()
-		{
-			int counter = 0;
-			while(counter < buffer.Length)
-			{
-				var received = (byte)serialPort.ReadByte ();
-				buffer [counter++] = received;
-				if (received == DELIMITER)
-					break;
-			}
-			return counter;
-		}
+	    private int Receive()
+	    {
+	        while (!BeginReceive()) { }
+	        int counter = 0;
+	        while (counter < _buffer.Length)
+	        {
+	            var received = (byte)_serialPort.ReadByte();
+	            _buffer[counter++] = received;
+	            if (received == Delimiter)
+	                break;
+	        }
+	        return counter;
+	    }
 
-		/// <summary>
-		/// Deframes what is currently stored in buffer and returns this to target
-		/// Size is the size of what is currently stored in buffer including the final delimiter
-		/// </summary>
-		/// <param name="">.</param>
-		private int Deframe(ref byte[] target, int size)
-		{
-			var inserted = 0;
-			for (var i = 0; i < size-1; i++) {
-				if (buffer [i] == (byte)'B')
-				{
-					if (buffer [++i] == (byte)'C') 
-						target [inserted++] = (byte)'A';
-					else 
-						target [inserted++] = (byte)'B';
+	    private bool BeginReceive()
+	    {
+	        var received = (byte)_serialPort.ReadByte();
+	        if (received == Delimiter)
+	            return true;
 
-					continue;
-				} 
-				target [inserted++] = buffer [i];				
-			}
-			return inserted;
-		}
+	        return false;
+	    }
+
+        #endregion
+
+        #region Framing
+
+	    /// <summary>
+	    /// Deframes what is currently stored in buffer and returns this to target
+	    /// Size is the size of what is currently stored in buffer including the final delimiter
+	    /// </summary>
+	    /// <param name="">.</param>
+	    private int Deframe(ref byte[] target, int size)
+	    {
+	        var inserted = 0;
+	        for (var i = 0; i < size - 1; i++)
+	        {
+	            if (_buffer[i] == (byte)'B')
+	            {
+	                if (_buffer[++i] == (byte)'C')
+	                    target[inserted++] = (byte)'A';
+	                else
+	                    target[inserted++] = (byte)'B';
+
+	                continue;
+	            }
+	            target[inserted++] = _buffer[i];
+	        }
+	        return inserted;
+	    }
 
 
-		private int Frame(byte[] buf, int size)
-		{
-			var counter = 0;
-			var inserted = 0;
+	    /// <summary>
+	    /// Frames the given buf with the given size
+	    /// </summary>
+	    /// <param name="buf"></param>
+	    /// <param name="size"></param>
+	    /// <returns></returns>
+	    private int Frame(byte[] buf, int size)
+	    {
+	        var counter = 0;
+	        var inserted = 0;
 
-			buffer [inserted++] = DELIMITER;
-		
-			while (counter < size) {
-				if (buf [counter] == DELIMITER) {
-					buffer [inserted++] = (byte)'B';
-					buffer [inserted++] = (byte)'C';				
-				} else if (buf [counter] == (byte)'B') {
-					buffer [inserted++] = (byte)'B';
-					buffer [inserted++] = (byte)'D';				
-				} else {
-					buffer [inserted++] = buf [counter];
-				}
-				counter++;
-			}
+	        _buffer[inserted++] = Delimiter;
 
-			buffer [inserted++] = DELIMITER;
-			return inserted;
-		}
-			
-	}
+	        while (counter < size)
+	        {
+	            if (buf[counter] == Delimiter)
+	            {
+	                _buffer[inserted++] = (byte)'B';
+	                _buffer[inserted++] = (byte)'C';
+	            }
+	            else if (buf[counter] == (byte)'B')
+	            {
+	                _buffer[inserted++] = (byte)'B';
+	                _buffer[inserted++] = (byte)'D';
+	            }
+	            else
+	            {
+	                _buffer[inserted++] = buf[counter];
+	            }
+	            counter++;
+	        }
+
+	        _buffer[inserted++] = Delimiter;
+	        return inserted;
+	    }
+
+        #endregion
+
+    }
 }
