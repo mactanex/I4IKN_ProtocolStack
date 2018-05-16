@@ -127,10 +127,10 @@ namespace Transportlaget
 			checksum.calcChecksum(ref buffer, size + (int)TransSize.ACKSIZE);
 
 			// For noice simulation
-			if (++noiseSimulation == 3) {
-				buffer [0]++;
-				noiseSimulation = 0;
-			}
+			//if (++noiseSimulation == 3) {
+			//	buffer [0]++;
+			//	noiseSimulation = 0;
+			//}
 
 			// Send it
 			if (!SendLink (ref buffer, size + (int)TransSize.ACKSIZE))
