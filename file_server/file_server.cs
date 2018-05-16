@@ -54,42 +54,31 @@ namespace Application
 		/// </param>
 		private void sendFile(string filePath, Transport transport)
 		{
-			// TO DO Your own code
-			//string fileName = LIB.extractFileName(@filePath);
-			//string currentDirectory = Directory.GetCurrentDirectory ();
-			//filePath = currentDirectory + "/" + "PlainText.txt";
-			if (LIB.check_File_Exists(@filePath) == 0 )
-				return;
 
-			Console.WriteLine ("Sending file: " + filePath + " to client");
-			FileStream fileStream = File.Open (@filePath, FileMode.Open);
-
-			long totalLength = fileStream.Length;
-			long currentPacketLength = 0;
-			int nOfChunks = Convert.ToInt32(Math.Ceiling (Convert.ToDouble(totalLength) / Convert.ToDouble(BUFSIZE)));
-
-			byte[] lengthToSend = Encoding.UTF8.GetBytes (totalLength.ToString ());
-			var tmp = lengthToSend.Length;
+			var fileSize = (int)LIB.check_File_Exists (@filePath);
+			var lengthToSend = Encoding.UTF8.GetBytes (fileSize.ToString());
 			transport.send (lengthToSend,lengthToSend.Length);
 
-			if (totalLength != 0) {
-				for (int i = 0; i < nOfChunks; i++) {
-					if (totalLength > BUFSIZE) {
-						currentPacketLength = BUFSIZE;
-					} else {
-						currentPacketLength = totalLength;
+			if (fileSize != 0) {
+
+				Console.WriteLine ("Sending file: " + filePath + " to client");
+
+				var fileBuf = new byte[BUFSIZE];
+				var bytesRead = 0;
+
+				using (var fileStream = File.Open (@filePath, FileMode.Open)) {
+
+					while ((bytesRead = ReadChunk (fileStream, ref fileBuf)) != 0) {
+						transport.send (fileBuf, bytesRead);
 					}
-					totalLength -= currentPacketLength;
 				
-					byte[] fileBuffer = new byte[currentPacketLength];
-					ReadChunk (fileStream, ref fileBuffer);
-
-					transport.send (fileBuffer, (int)currentPacketLength);
-
 				}
+					
 				Console.WriteLine ("The requested file was sent");
+
+			} else {
+				Console.WriteLine ("The requested file was not found on the server!");
 			}
-			fileStream.Close ();
 		}
 
 

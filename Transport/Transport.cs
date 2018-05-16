@@ -117,11 +117,11 @@ namespace Transportlaget
 				buffer[i + (int)TransSize.ACKSIZE] = buf[i];
 			}
 			checksum.calcChecksum(ref buffer, size + (int)TransSize.ACKSIZE);
+
 			// Send it
-            do
-            {              
-				link.send(buffer, size + (int)TransSize.ACKSIZE);
-            } while (receiveAck() != seqNo);
+			if (!SendLink (ref buffer, size + (int)TransSize.ACKSIZE))
+				return; // Timeout occured
+			
 			// Package received - update seq number
             nextSeqNo();
             old_seqNo = DEFAULT_SEQNO;
@@ -160,6 +160,26 @@ namespace Transportlaget
         {
             seqNo = (byte)((seqNo + 1) % 2);
         }
+
+		private bool SendLink(ref byte[] buff, int size)
+		{
+			while (errorCount < 5) {
+				try{
+					do
+					{              
+						link.send(buff, size);
+					} while (receiveAck() != seqNo);
+					break;
+				}catch(TimeoutException) {
+					errorCount++;
+					if (errorCount == 5) {
+						errorCount = 0;
+						return false;
+					}
+				}
+			}
+			return true;
+		}
 
 		private int ReadLink(ref byte[] buff)
 		{
