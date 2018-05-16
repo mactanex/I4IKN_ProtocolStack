@@ -67,18 +67,18 @@ namespace Application
 			byte[] fileBuffer = new byte[BUFSIZE];
 
 			var readSize = 0;
-			var offset = 0;
+			var read = 0;
 
 			Console.WriteLine ("Receiving file..");
 
 			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
-			while((readSize = transport.Receive(ref fileBuffer)) > 0)
+			while(read < fileSize && (readSize = transport.Receive(ref fileBuffer)) > 0)
 			{
 				newFile.Write (fileBuffer, 0, readSize);
-				offset += readSize;
+				read += readSize;
 			}
 
-			if (offset == fileSize)
+			if (read == fileSize)
 				Console.WriteLine ("The requested file was received");
 			else
 				Console.WriteLine ("An error occured while downloading file..");
