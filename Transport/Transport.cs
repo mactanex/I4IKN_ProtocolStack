@@ -128,24 +128,11 @@ namespace Transportlaget
 		    _errorCount = 0;
 		}
 
-	    private int ConstructPackage(byte[] data, int size)
-	    {
-            _buffer[(int)TransCHKSUM.SEQNO] = _seqNr;
-	        _buffer[(int)TransCHKSUM.TYPE] = (int)TransType.DATA;
-	        for (var i = 0; i < size; i++)
-	        {
-	            _buffer[i + (int)TransSize.ACKSIZE] = data[i];
-	        }
-	        size = size + (int) TransSize.ACKSIZE;
-	        _checksum.calcChecksum(ref _buffer, size);
-	        return size;
-	    }
-
 	    public int Receive(ref byte[] buff)
 	    {
 	        var readSize = 0;
 
-	        while (_errorCount < 5)
+	        while (_errorCount < 5 && readSize == 0) 
 	        {
 	            try
 	            {
@@ -184,5 +171,18 @@ namespace Transportlaget
         {
             _seqNr = (byte)((_seqNr + 1) % 2);
         }
-	}
+
+	    private int ConstructPackage(byte[] data, int size)
+	    {
+	        _buffer[(int)TransCHKSUM.SEQNO] = _seqNr;
+	        _buffer[(int)TransCHKSUM.TYPE] = (int)TransType.DATA;
+	        for (var i = 0; i < size; i++)
+	        {
+	            _buffer[i + (int)TransSize.ACKSIZE] = data[i];
+	        }
+	        size = size + (int)TransSize.ACKSIZE;
+	        _checksum.calcChecksum(ref _buffer, size);
+	        return size;
+	    }
+    }
 }

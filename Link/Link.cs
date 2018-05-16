@@ -19,10 +19,11 @@ namespace Linklaget
 		/// The buffer for link.
 		/// </summary>
 		private byte[] buffer;
-		/// <summary>
-		/// The serial port.
-		/// </summary>
-		SerialPort serialPort;
+
+	    /// <summary>
+	    /// The serial port.
+	    /// </summary>
+	    private static SerialPort serialPort = null;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="link"/> class.
@@ -31,7 +32,7 @@ namespace Linklaget
 		{
 			// Create a new SerialPort object with default settings.
 
-			serialPort = new SerialPort("COM3",115200,Parity.None,8,StopBits.One);
+			serialPort = serialPort ?? new SerialPort("COM5",115200,Parity.None,8,StopBits.One);
 
 			if(!serialPort.IsOpen)
 				serialPort.Open();
