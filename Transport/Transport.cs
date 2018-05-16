@@ -94,13 +94,12 @@ namespace Transportlaget
 		{
 			byte[] ackBuf = new byte[(int)TransSize.ACKSIZE];
 			ackBuf [(int)TransCHKSUM.SEQNO] = (byte)
-				(ackType ? (byte)buffer [(int)TransCHKSUM.SEQNO] : (byte)(buffer [(int)TransCHKSUM.SEQNO] + 1) % 2);
+				(ackType ? (byte)buffer [(int)TransCHKSUM.SEQNO] : (byte)(seqNo + 1) % 2);
 			ackBuf [(int)TransCHKSUM.TYPE] = (byte)(int)TransType.ACK;
 			checksum.calcChecksum (ref ackBuf, (int)TransSize.ACKSIZE);
 
-			if (++noiseSimulation == 3) {
+			if (++noiseSimulation == 2) {
 				ackBuf [0]++;
-				noiseSimulation = 0;
 			}
 
 			link.send(ackBuf, (int)TransSize.ACKSIZE);

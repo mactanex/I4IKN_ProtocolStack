@@ -73,7 +73,6 @@ namespace Application
 					}
 				
 				}
-					
 				Console.WriteLine ("The requested file was sent");
 
 			} else {

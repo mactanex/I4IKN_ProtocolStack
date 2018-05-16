@@ -69,11 +69,12 @@ namespace Application
 			var readSize = 0;
 			var offset = 0;
 
+			Console.WriteLine ("Receiving file..");
+
 			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
 			while((readSize = transport.receive(ref fileBuffer)) > 0)
 			{
-				Console.WriteLine ("Receiving file..");
-				newFile.Write (fileBuffer, offset, readSize);
+				newFile.Write (fileBuffer, 0, readSize);
 				offset += readSize;
 			}
 
