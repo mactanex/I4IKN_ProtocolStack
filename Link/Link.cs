@@ -139,8 +139,7 @@ namespace Linklaget
 	    /// <returns></returns>
 	    private int Frame(byte[] buf, int size)
 	    {
-	        var counter = 0;
-	        var inserted = 0;
+	        int counter = 0, inserted = 0;
 
 	        _buffer[inserted++] = Delimiter;
 
