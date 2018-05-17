@@ -90,7 +90,7 @@ namespace Transportlaget
 	    {
 	        var readSize = 0;
 
-	        while (_errorCount < 5 && readSize == 0) 
+	        while (readSize == 0 && _errorCount < 5) 
 	        {
 	            try
 	            {
