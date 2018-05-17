@@ -23,23 +23,22 @@ namespace Transportlaget
     		return (~((sum & 0xFFFF)+(sum >> 16)))&0xFFFF;
 		}
 
-		public bool checkChecksum(byte[] buf, int size)
+		public bool CheckChecksum(byte[] buf, int size)
 		{
-			byte[] buffer = new byte[size-2];
-
-			Array.Copy(buf, (int)TransSize.CHKSUMSIZE, buffer, 0, buffer.Length);
-			return ( checksum(buffer) == (long)(buf[(int)TransCHKSUM.CHKSUMHIGH] << 8 | buf[(int)TransCHKSUM.CHKSUMLOW]));
+			var buffer = new byte[size-2];
+			Array.Copy(buf, TransSize.ChecksumSize, buffer, 0, buffer.Length);
+			return ( checksum(buffer) == (buf[TransChecksum.ChecksumHigh] << 8 | buf[TransChecksum.ChecksumLow]));
 		}
 
-		public void calcChecksum (ref byte[] buf, int size)
+		public void CalcChecksum (ref byte[] buf, int size)
 		{
-			byte[] buffer = new byte[size-2];
+			var buffer = new byte[size-2];
 			long sum = 0;
 
 			Array.Copy(buf, 2, buffer, 0, buffer.Length);
 			sum = checksum(buffer);
-			buf[(int)TransCHKSUM.CHKSUMHIGH] = (byte)((sum >> 8) & 255);
-			buf[(int)TransCHKSUM.CHKSUMLOW] = (byte)(sum & 255);
+			buf[TransChecksum.ChecksumHigh] = (byte)((sum >> 8) & 255);
+			buf[TransChecksum.ChecksumLow] = (byte)(sum & 255);
 		}
 	}
 }

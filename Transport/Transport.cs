@@ -45,9 +45,9 @@ namespace Transportlaget
 		/// </summary>
 		public Transport (int buffSize)
 		{
-			_link = new Link(buffSize+(int)TransSize.ACKSIZE);
+			_link = new Link(buffSize+TransSize.AckSize);
 			_checksum = new Checksum();
-			_buffer = new byte[buffSize+(int)TransSize.ACKSIZE];
+			_buffer = new byte[buffSize+TransSize.AckSize];
             _sequenceNumber = new SeqNr(0);
 			_errorCount = 0;
 		}
@@ -96,7 +96,7 @@ namespace Transportlaget
 	            {
 	                while ((readSize = _link.Receive(ref _buffer)) > 0)
 	                {
-	                    if (!_checksum.checkChecksum(_buffer, readSize) || _buffer[(int)TransCHKSUM.SEQNO] == _sequenceNumber.Peak())
+	                    if (!_checksum.CheckChecksum(_buffer, readSize) || _buffer[TransChecksum.SequenceNumber] != _sequenceNumber)
 	                    {
                             CreateAndSendAck(_sequenceNumber.Peak());
 	                    }
@@ -104,8 +104,8 @@ namespace Transportlaget
 	                    {
                             CreateAndSendAck(_sequenceNumber);
 	                        _sequenceNumber++;
-	                        readSize = buff.Length < readSize - (int)TransSize.ACKSIZE ? buff.Length : readSize - (int)TransSize.ACKSIZE;
-	                        Array.Copy(_buffer, (int)TransSize.ACKSIZE, buff, 0, readSize);
+	                        readSize = buff.Length < readSize - TransSize.AckSize ? buff.Length : readSize - TransSize.AckSize;
+	                        Array.Copy(_buffer, TransSize.AckSize, buff, 0, readSize);
 	                        break;
                         }
 	                }                   
@@ -126,23 +126,23 @@ namespace Transportlaget
 
 	    private int ConstructPackage(byte[] data, int size)
 	    {
-	        _buffer[(int)TransCHKSUM.SEQNO] = _sequenceNumber;
-	        _buffer[(int)TransCHKSUM.TYPE] = (int)TransType.DATA;
+	        _buffer[TransChecksum.SequenceNumber] = _sequenceNumber;
+	        _buffer[TransChecksum.Type] = TransType.Data;
 	        for (var i = 0; i < size; i++)
 	        {
-	            _buffer[i + (int)TransSize.ACKSIZE] = data[i];
+	            _buffer[i + TransSize.AckSize] = data[i];
 	        }
-	        size = size + (int)TransSize.ACKSIZE;
-	        _checksum.calcChecksum(ref _buffer, size);
+	        size = size + TransSize.AckSize;
+	        _checksum.CalcChecksum(ref _buffer, size);
 	        return size;
 	    }
 
 	    private void CreateAndSendAck(SeqNr ackNr)
 	    {
-	        var ackBuf = new byte[(int) TransSize.ACKSIZE];
-	        ackBuf[(int) TransCHKSUM.SEQNO] = ackNr;
-	        ackBuf[(int) TransCHKSUM.TYPE] = (byte) TransType.ACK;
-            _checksum.calcChecksum(ref ackBuf, (int) TransSize.ACKSIZE);
+	        var ackBuf = new byte[TransSize.AckSize];
+	        ackBuf[TransChecksum.SequenceNumber] = ackNr;
+	        ackBuf[TransChecksum.Type] = TransType.Ack;
+            _checksum.CalcChecksum(ref ackBuf, TransSize.AckSize);
 
             // Noise simulation
 	        if (++_noiseSimulation == 2)
@@ -151,15 +151,15 @@ namespace Transportlaget
 	            _noiseSimulation = 0;
 	        }
 
-            _link.Send(ackBuf, (int)TransSize.ACKSIZE);
+            _link.Send(ackBuf, TransSize.AckSize);
 	    }
 
 	    private byte ReceiveAck()
 	    {
-	        var ackBuf = new byte[(int)TransSize.ACKSIZE];
-	        var size = _link.Receive(ref ackBuf);
-	        if (size != (int)TransSize.ACKSIZE || !_checksum.checkChecksum(ackBuf, (int)TransSize.ACKSIZE) ||
-	            ackBuf[(int)TransCHKSUM.SEQNO] != _sequenceNumber || ackBuf[(int)TransCHKSUM.TYPE] != (int)TransType.ACK)
+	        var ackBuf = new byte[TransSize.AckSize];
+            var size = _link.Receive(ref ackBuf);
+	        if (size != TransSize.AckSize || !_checksum.CheckChecksum(ackBuf, TransSize.AckSize) ||
+	            ackBuf[(int)TransChecksum.SequenceNumber] != _sequenceNumber || ackBuf[TransChecksum.Type] != TransType.Ack)
 	            return DefaultSeqNr;
 	        return _sequenceNumber;
 	    }
