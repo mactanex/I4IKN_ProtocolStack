@@ -28,6 +28,8 @@ namespace Transportlaget
 		/// </summary>
 		private int _errorCount;
 
+		private int _noiseSimulation = 0;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Transport"/> class.
 		/// </summary>
@@ -86,10 +88,10 @@ namespace Transportlaget
 	                       (!ChecksumCalculator.CheckChecksum(_buffer, packageSize) ||
                           _buffer[(int)TransChecksum.SequenceNumber] != _sequenceNumber))
 	                {
-	                    _sequenceNumber.SendAcknowledge(_link, false);
+						_sequenceNumber.SendAcknowledge(_link, false, NoiseSimulation);
                     }
 
-	                _sequenceNumber.SendAcknowledge(_link, true).Next();
+					_sequenceNumber.SendAcknowledge(_link, true, NoiseSimulation).Next();
 	                return DeconstructPackage(ref buff, packageSize);
 	                             
 	            }
@@ -127,7 +129,18 @@ namespace Transportlaget
 
         #endregion
 
+		#region Simulation
 
+		private bool NoiseSimulation()
+		{
+			if (++_noiseSimulation == 2) {
+				_noiseSimulation = 0;
+				return true;
+			}
+			return false;
+		}
 
-    }
+		#endregion
+
+	}
 }
