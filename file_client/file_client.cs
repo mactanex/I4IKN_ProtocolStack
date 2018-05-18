@@ -61,11 +61,11 @@ namespace Application
 		/// <param name='transport'>
 		/// Transportlaget
 		/// </param>
-		private void receiveFile (String fileName, long fileSize,Transport transport)
+		private void receiveFile (String path, long fileSize,Transport transport)
 		{
 			// TO DO Your own code
 			byte[] fileBuffer = new byte[BUFSIZE];
-
+			string fileName = LIB.extractFileName (path);
 			var readSize = 0;
 			var read = 0;
 
