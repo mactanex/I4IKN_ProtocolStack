@@ -71,7 +71,7 @@ namespace Application
 
 			Console.WriteLine ("Receiving file..");
 
-			FileStream newFile = new FileStream (fileName, FileMode.OpenOrCreate, FileAccess.Write);
+			FileStream newFile = new FileStream (fileName, FileMode.Creates, FileAccess.Write);
 			while(read < fileSize && (readSize = transport.Receive(ref fileBuffer)) > 0)
 			{
 				newFile.Write (fileBuffer, 0, readSize);
