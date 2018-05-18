@@ -36,7 +36,7 @@
     <Compile Include="SeqNr.cs" />
     <Compile Include="Transport.cs" />
     <Compile Include="TransConst.cs" />
-    <Compile Include="Checksum.cs" />
+    <Compile Include="ChecksumCalculator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

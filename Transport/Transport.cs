@@ -16,38 +16,25 @@ namespace Transportlaget
 		/// </summary>
 		private readonly Link _link;
 		/// <summary>
-		/// The 1' complements _checksum.
-		/// </summary>
-		private readonly Checksum _checksum;
-		/// <summary>
 		/// The _buffer.
 		/// </summary>
-		private byte[] _buffer;
+		private byte[] _buffer;              
 		/// <summary>
 		/// The seq no.
 		/// </summary>
-	    private SeqNr _sequenceNumber;
+	    private readonly SeqNr _sequenceNumber;
 		/// <summary>
 		/// The error count.
 		/// </summary>
 		private int _errorCount;
-		/// <summary>
-		/// The DefaultSeqNr.
-		/// </summary>
-		private const int DefaultSeqNr = 2;
-        /// <summary>
-        /// For simulating noise
-        /// </summary>
-		private int _noiseSimulation = 0;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Transport"/> class.
 		/// </summary>
 		public Transport (int buffSize)
 		{
-			_link = new Link(buffSize+TransSize.AckSize);
-			_checksum = new Checksum();
-			_buffer = new byte[buffSize+TransSize.AckSize];
+			_link = new Link(buffSize + (int)TransSize.AckSize);
+			_buffer = new byte[buffSize + (int)TransSize.AckSize];
             _sequenceNumber = new SeqNr(0);
 			_errorCount = 0;
 		}
@@ -73,8 +60,8 @@ namespace Transportlaget
 		            do
 		            {
 		                _link.Send(_buffer, packageSize);
-		            } while (ReceiveAck() != _sequenceNumber);
-		            _sequenceNumber++;
+		            } while (!_sequenceNumber.RequestAcknowledge(_link));
+		            _sequenceNumber.Next();
 		            break;
 		        }
 		        catch (TimeoutException)
@@ -88,80 +75,54 @@ namespace Transportlaget
 
 	    public int Receive(ref byte[] buff)
 	    {
-	        var readSize = 0;
+	        var packageSize = 0;
 
-	        while (readSize == 0 && _errorCount < 5) 
+	        while (_errorCount < 5) 
 	        {
 	            try
 	            {
-	                while ((readSize = _link.Receive(ref _buffer)) > 0)
+
+	                while ((packageSize = _link.Receive(ref _buffer)) > 0 && 
+	                       (!ChecksumCalculator.CheckChecksum(_buffer, packageSize) ||
+                          _buffer[(int)TransChecksum.SequenceNumber] != _sequenceNumber))
 	                {
-	                    if (!_checksum.CheckChecksum(_buffer, readSize) || _buffer[TransChecksum.SequenceNumber] != _sequenceNumber)
-	                    {
-                            CreateAndSendAck(_sequenceNumber.Peak());
-	                    }
-	                    else
-	                    {
-                            CreateAndSendAck(_sequenceNumber);
-	                        _sequenceNumber++;
-	                        readSize = buff.Length < readSize - TransSize.AckSize ? buff.Length : readSize - TransSize.AckSize;
-	                        Array.Copy(_buffer, TransSize.AckSize, buff, 0, readSize);
-	                        break;
-                        }
-	                }                   
+	                    _sequenceNumber.SendAcknowledge(_link, false);
+                    }
+
+	                _sequenceNumber.SendAcknowledge(_link, true).Next();
+	                return DeconstructPackage(ref buff, packageSize);
+	                             
 	            }
 	            catch (TimeoutException)
 	            {
-	                readSize = 0;
                     _errorCount++;
 	            }
-
             }
 
 	        _errorCount = 0;
-	        return readSize;
+	        return packageSize;
 	    }
 
         #region Utility
 
 	    private int ConstructPackage(byte[] data, int size)
 	    {
-	        _buffer[TransChecksum.SequenceNumber] = _sequenceNumber;
-	        _buffer[TransChecksum.Type] = TransType.Data;
+	        _buffer[(int)TransChecksum.SequenceNumber] = _sequenceNumber;
+	        _buffer[(int)TransChecksum.Type] = (byte)TransType.Data;
 	        for (var i = 0; i < size; i++)
 	        {
-	            _buffer[i + TransSize.AckSize] = data[i];
+	            _buffer[i + (byte)TransSize.AckSize] = data[i];
 	        }
-	        size = size + TransSize.AckSize;
-	        _checksum.CalcChecksum(ref _buffer, size);
+	        size = size + (byte)TransSize.AckSize;
+	        ChecksumCalculator.CalcChecksum(_buffer, size);
 	        return size;
 	    }
 
-	    private void CreateAndSendAck(SeqNr ackNr)
+	    private int DeconstructPackage(ref byte[] targetBuff, int packageSize)
 	    {
-	        var ackBuf = new byte[TransSize.AckSize];
-	        ackBuf[TransChecksum.SequenceNumber] = ackNr;
-	        ackBuf[TransChecksum.Type] = TransType.Ack;
-            _checksum.CalcChecksum(ref ackBuf, TransSize.AckSize);
-
-            // Noise simulation
-	        if (++_noiseSimulation == 2)
-	        {
-	            ackBuf[0]++;
-	            _noiseSimulation = 0;
-	        }
-
-            _link.Send(ackBuf, TransSize.AckSize);
-	    }
-
-	    private byte ReceiveAck()
-	    {
-	        var ackBuf = new byte[TransSize.AckSize];
-            var size = _link.Receive(ref ackBuf);
-	        if (size != TransSize.AckSize || !_checksum.CheckChecksum(ackBuf, TransSize.AckSize) ||
-	            ackBuf[(int)TransChecksum.SequenceNumber] != _sequenceNumber || ackBuf[TransChecksum.Type] != TransType.Ack)
-	            return DefaultSeqNr;
-	        return _sequenceNumber;
+	        var dataSize = targetBuff.Length < packageSize - (byte)TransSize.AckSize ? targetBuff.Length : packageSize - (byte)TransSize.AckSize;
+	        Array.Copy(_buffer, (int)TransSize.AckSize, targetBuff, 0, dataSize);
+            return dataSize;
 	    }
 
         #endregion

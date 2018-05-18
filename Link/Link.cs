@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO.Ports;
 
 /// <summary>
@@ -32,18 +34,22 @@ namespace Linklaget
 		{
 			// Create a new SerialPort object with default settings.
 
-			_serialPort = _serialPort ?? new SerialPort("COM4",115200,Parity.None,8,StopBits.One);
+			_serialPort = _serialPort ?? new SerialPort("COM5",115200,Parity.None,8,StopBits.One);
 
 			if(!_serialPort.IsOpen)
-				_serialPort.Open();
+		    {
+		        _serialPort.Open();
+
+		        // Uncomment the next line to use timeout
+		        //_serialPort.ReadTimeout = 500;
+
+		        _serialPort.DiscardInBuffer();
+		        _serialPort.DiscardOutBuffer();
+            }
+				
 
 			_buffer = new byte[(buffSize*2) + 2]; // Added two extra for delimeters
 
-			// Uncomment the next line to use timeout
-			_serialPort.ReadTimeout = 500;
-
-			_serialPort.DiscardInBuffer ();
-			_serialPort.DiscardOutBuffer ();
 		}
 
 		/// <summary>
@@ -70,12 +76,12 @@ namespace Linklaget
 		/// <param name='size'>
 		/// Size.
 		/// </param>
-		public int Receive (ref byte[] buf)
-		{			
-			var sizeWithDelimiter = Receive ();
-			var size = Deframe (ref buf, sizeWithDelimiter);
-			return size;
-		}
+	    public int Receive(ref byte[] buf)
+	    {
+	        var sizeWithDelimiter = Receive();
+	        var size = Deframe(ref buf, sizeWithDelimiter);
+	        return size;
+        }
 
         #region Receive Utility
 
@@ -116,7 +122,10 @@ namespace Linklaget
 	        var inserted = 0;
 	        for (var i = 0; i < size - 1; i++)
 	        {
-	            if (_buffer[i] == (byte)'B')
+	            if (!(inserted < target.Length))
+	                break;
+
+                if (_buffer[i] == (byte)'B')
 	            {
 	                if (_buffer[++i] == (byte)'C')
 	                    target[inserted++] = (byte)'A';
@@ -126,6 +135,7 @@ namespace Linklaget
 	                continue;
 	            }
 	            target[inserted++] = _buffer[i];
+	            
 	        }
 	        return inserted;
 	    }

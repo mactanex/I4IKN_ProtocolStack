@@ -2,23 +2,23 @@ using System;
 
 namespace Transportlaget
 {
-    public static class TransSize
+    public enum TransSize
     {
-        public static byte ChecksumSize = 2;
-        public static byte AckSize = 4;
+        ChecksumSize = 2,
+        AckSize = 4
     }
 
-    public static class TransChecksum
+    public enum TransChecksum
     {
-        public static byte ChecksumHigh = 0;
-        public static byte ChecksumLow = 1;
-        public static byte SequenceNumber = 2;
-        public static byte Type = 3;
+        ChecksumHigh = 0,
+        ChecksumLow = 1,
+        SequenceNumber = 2,
+        Type = 3
     }
 
-    public static class TransType
+    public enum TransType
     {
-        public static byte Data = 0;
-        public static byte Ack = 1;
+        Data = 0,
+        Ack = 1,
     }
 }
